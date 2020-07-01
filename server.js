@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
 // Instead of res.send we can use res.json and there's a slight difference in what we receive. We receive a JSON string this way.
 // We want to check whatever the user enters on the front-end – it's going to come back here in the response or in the request and we want to check it with our current list of users to make sure that their passwords match.
 app.post('/signin', (req, res) => {
-	// In Postman we add in the body - json -> 
+	// In Postman we add in the body - json to test -> 
 	/*{
     "email": "john@gmail.com",
     "password": "cookies"
@@ -46,6 +46,29 @@ app.post('/signin', (req, res) => {
 	}
 	// res.send('signin')
 	res.json('signin')
+})
+
+app.post('/register', (req, res) => {
+	/*
+		In register on POSTMAN we put in body - json:
+		{
+    	"email": "ann@gmail.com",
+    	"password": "apples", 
+    	"name": "Ann"
+		}
+	*/
+	// Using destructuring:
+	const { email, name, password } = req.body;
+	// We want to create a new user:
+	database.users.push({
+		id: '125',
+		name: name,
+		email: email,
+		password: password,
+		entries: 0,
+		joined: new Date()
+	})
+	res.json(database.users[database.users.length-1]);
 })
 // we can send app.listen a second parameter, which is a function within this function, it will run right after the 'listen' happens on port 3000.
 app.listen(3000, () => {
