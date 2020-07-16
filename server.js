@@ -69,7 +69,7 @@ app.post('/register', (req, res) => {
     	"name": "Ann"
 		}
 	*/
-	// Using destructuring we grab what we need from req.body:
+	// Using destructuring we grab (GET) what we need from req.body:
 	const { email, name, password } = req.body;
 	// We want to create a new user:
 	database.users.push({
@@ -82,6 +82,42 @@ app.post('/register', (req, res) => {
 	})
 	// we want the response to add new user that was created
 	res.json(database.users[database.users.length-1]);
+})
+
+// By using :id it means we can have anything e.g. 87374 and it will get the user id from the req.params property
+app.get('/profile/:id', (req, res) => {
+	// First we want to grab the parameter id
+	const { id } = req.params;
+	let found = false;
+	// We have to loop through ids:
+	database.users.forEach(user => {
+		if(user.id === id) {
+			found = true;
+			return res.json(user);
+		}
+	})
+	if(!found) { 
+		res.status(400).json('no such user');
+	}
+})
+
+// copying function as above but adding entries plus 1 if user found
+// TO test in POSTMAN - in body type under PUT: { "id": "123" }
+app.put('/image', (req, res) => {
+	// First we want to grab the body id
+	const { id } = req.body;
+	let found = false;
+	// We have to loop through ids:
+	database.users.forEach(user => {
+		if(user.id === id) {
+			found = true;
+			user.entries++;
+			return res.json(user.entries);
+		}
+	})
+	if(!found) { 
+		res.status(400).json('no such user');
+	}
 })
 // we can send app.listen a second parameter, which is a function within this function, it will run right after the 'listen' happens on port 3000.
 app.listen(3000, () => {
