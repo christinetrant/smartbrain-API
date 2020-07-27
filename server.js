@@ -30,8 +30,8 @@ const database = {
 }
 // create a route to make sure everything is working - we test this in Postman
 app.get('/', (req, res) => {
-	// res.send('this is working');
-	res.send(database.users);
+	res.send('this is working');
+	// res.send(database.users);
 	// If we look in Postman we only get first 2 users
   /* So what just happened? Well this is another good case for why we need a database.
 	The reason that Ann wasn't added the first time around is because I changed the root route to include 'database.users', which meant the Nodemon had to restart; the server had to restart and start over.
@@ -60,7 +60,7 @@ app.post('/signin', (req, res) => {
 		res.status(400).json('error logging in');
 	}
 	// res.send('signin')
-	res.json('signin')
+	// res.json('signin')
 })
 
 app.post('/register', (req, res) => {
