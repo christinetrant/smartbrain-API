@@ -1,11 +1,27 @@
 const express = require('express');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
+const knex = require('knex');
+
+const db = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    user : 'postgres',
+    password : 'test',
+    database : 'smartbrain'
+  }
+});
+
+console.log(db.select('*').from('users'));
+
 const app = express();
 // need the below to parse json:
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
+
+
 // Until I get to learn databases, going to use a variable to store users for now:
 const database = {
 	users: [
