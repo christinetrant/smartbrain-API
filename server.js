@@ -107,15 +107,22 @@ app.post('/register', (req, res) => {
 	// 	joined: new Date()
 	// })
 	// We can now do above but connect to database - use Postman to test and then SELECT * FROM users; in command line psql
-	db('users').insert({
-		name: name,
-		email: email,
-		joined: new Date()
-	})
-	.then(console.log);
-	
+	db('users')
+		// return all users using help from knex:
+		.returning('*')
+		.insert({
+			email: email,
+			name: name,
+			joined: new Date()
+		})
+		// .then(console.log);
+		// If we get a response:
+		.then(user => {
+			res.json(user[0]);		
+		})
+		.catch(err => res.status(400).json('Unable to register'));
 	// we want the response to add new user that was created
-	res.json(database.users[database.users.length-1]);
+	// res.json(database.users[database.users.length-1]);
 })
 
 // By using :id it means we can have anything e.g. 87374 and it will get the user id from the req.params property
