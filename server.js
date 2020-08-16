@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
+// to connect to our postgres database
 const knex = require('knex');
 
 const db = knex({
@@ -12,8 +13,10 @@ const db = knex({
     database : 'smartbrain'
   }
 });
-
-console.log(db.select('*').from('users'));
+// to access something from the users table we need a promise (.then) - we get an empty array so we know it is connected
+// db.select('*').from('users').then(data => {
+// 	console.log(data);
+// });
 
 const app = express();
 // need the below to parse json:
@@ -90,19 +93,27 @@ app.post('/register', (req, res) => {
 	*/
 	// Using destructuring we grab (GET) what we need from req.body:
 	const { email, name, password } = req.body;
-	bcrypt.hash(password, null, null, function(err, hash) {
+	// bcrypt.hash(password, null, null, function(err, hash) {
 		// Store hash in your password DB.
-	});
+	// });
 
 	// We want to create a new user:
-	database.users.push({
-		id: '125',
+	// database.users.push({
+	// 	id: '125',
+	// 	name: name,
+	// 	email: email,
+	// 	// password: password,
+	// 	entries: 0,
+	// 	joined: new Date()
+	// })
+	// We can now do above but connect to database - use Postman to test and then SELECT * FROM users; in command line psql
+	db('users').insert({
 		name: name,
 		email: email,
-		// password: password,
-		entries: 0,
 		joined: new Date()
 	})
+	.then(console.log);
+	
 	// we want the response to add new user that was created
 	res.json(database.users[database.users.length-1]);
 })
