@@ -129,17 +129,33 @@ app.post('/register', (req, res) => {
 app.get('/profile/:id', (req, res) => {
 	// First we want to grab the parameter id
 	const { id } = req.params;
-	let found = false;
-	// We have to loop through ids:
-	database.users.forEach(user => {
-		if(user.id === id) {
-			found = true;
-			return res.json(user);
-		}
-	})
-	if(!found) { 
-		res.status(400).json('no such user');
-	}
+	// let found = false;
+	// // We have to loop through ids:
+	// database.users.forEach(user => {
+	// 	if(user.id === id) {
+	// 		found = true;
+	// 		return res.json(user);
+	// 	}
+	// })
+
+	// Now our database is connected we can do:
+	db.select('*').from('users')
+		// .where({id: id}) - we can destructure to look like:
+		.where({id})
+		.then(user => {
+			// console.log(user[0]);
+			// If array of user is not 0 (empty)
+			if(user.length) {
+				res.json(user[0])
+			} else {
+				res.status(400).json('Not found')
+			}
+		})
+		.catch(err => res.status(400).json('Error getting user'))
+	
+	// if(!found) { 
+	// 	res.status(400).json('no such user');
+	// }
 })
 
 // copying function as above but adding entries plus 1 if user found
@@ -147,18 +163,28 @@ app.get('/profile/:id', (req, res) => {
 app.put('/image', (req, res) => {
 	// First we want to grab the body id
 	const { id } = req.body;
-	let found = false;
-	// We have to loop through ids:
-	database.users.forEach(user => {
-		if(user.id === id) {
-			found = true;
-			user.entries++;
-			return res.json(user.entries);
-		}
-	})
-	if(!found) { 
-		res.status(400).json('no such user');
-	}
+	// let found = false;
+	// // We have to loop through ids:
+	// database.users.forEach(user => {
+	// 	if(user.id === id) {
+	// 		found = true;
+	// 		user.entries++;
+	// 		return res.json(user.entries);
+	// 	}
+	// })
+	// if(!found) { 
+	// 	res.status(400).json('no such user');
+	// }
+
+	// Implementing for database:
+	db('users').where('id', '=', id)
+		.increment('entries', 1)
+		.returning('entries')
+		.then(entries => {
+			// console.log(entries[0]);
+			res.json(entries[0])
+		})
+		.catch(err => res.status(400).json('Unable to get entries'))
 })
 
 
