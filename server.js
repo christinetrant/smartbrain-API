@@ -26,27 +26,27 @@ app.use(cors());
 
 
 // Until I get to learn databases, going to use a variable to store users for now:
-const database = {
-	users: [
-		{
-			id: '123',
-			name: 'John',
-			email: 'john@gmail.com',
-			password: 'cookies',
-			// how many times john has submitted photos
-			entries: 0,
-			joined: new Date()
-		},
-		{
-			id: '124',
-			name: 'Sally',
-			email: 'sally@gmail.com',
-			password: 'bananas',
-			entries: 0,
-			joined: new Date()
-		}
-	]
-}
+// const database = {
+// 	users: [
+// 		{
+// 			id: '123',
+// 			name: 'John',
+// 			email: 'john@gmail.com',
+// 			password: 'cookies',
+// 			// how many times john has submitted photos
+// 			entries: 0,
+// 			joined: new Date()
+// 		},
+// 		{
+// 			id: '124',
+// 			name: 'Sally',
+// 			email: 'sally@gmail.com',
+// 			password: 'bananas',
+// 			entries: 0,
+// 			joined: new Date()
+// 		}
+// 	]
+// }
 // create a route to make sure everything is working - we test this in Postman
 app.get('/', (req, res) => {
 	res.send('this is working');
@@ -72,14 +72,34 @@ app.post('/signin', (req, res) => {
     "email": "john@gmail.com",
     "password": "cookies"
 	}*/
-	if(req.body.email === database.users[0].email && req.body.password === database.users[0].password) {
-		// res.json('success')
-		res.json(database.users[0]);
-	} else {
-		res.status(400).json('error logging in');
-	}
+	// if(req.body.email === database.users[0].email && req.body.password === database.users[0].password) {
+	// 	// res.json('success')
+	// 	res.json(database.users[0]);
+	// } else {
+	// 	res.status(400).json('error logging in');
+	// }
 	// res.send('signin')
 	// res.json('signin')
+
+	db.select('email', 'hash').from('login')
+		.where('email', '=', req.body.email)
+		.then(data => {
+			// console.log(data);
+			const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+			// console.log(isValid)
+			if(isValid) {
+				return db.select('*').from('users')
+					.where('email', '=', req.body.email)
+					.then(user => {
+						// console.log(user[0])
+						res.json(user[0])
+					})
+					.catch(err => res.status(400).json('Unable to get user'))
+			} else {
+				res.status(400).json('Wrong credentials')
+			}
+		})
+		.catch(err => res.status(400).json('Wrong credentials'))
 })
 
 app.post('/register', (req, res) => {
