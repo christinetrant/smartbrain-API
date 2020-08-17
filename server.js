@@ -106,23 +106,55 @@ app.post('/register', (req, res) => {
 	// 	entries: 0,
 	// 	joined: new Date()
 	// })
+
 	// We can now do above but connect to database - use Postman to test and then SELECT * FROM users; in command line psql
-	db('users')
-		// return all users using help from knex:
-		.returning('*')
-		.insert({
-			email: email,
-			name: name,
-			joined: new Date()
-		})
-		// .then(console.log);
-		// If we get a response:
-		.then(user => {
-			res.json(user[0]);		
-		})
-		.catch(err => res.status(400).json('Unable to register'));
+	// return db('users')
+	// 	// return all users using help from knex:
+	// 	.returning('*')
+	// 	.insert({
+	// 		email: email,
+	// 		name: name,
+	// 		joined: new Date()
+	// 	})
+	// 	// .then(console.log);
+	// 	// If we get a response:
+	// 	.then(user => {
+	// 		res.json(user[0]);		
+	// 	})
+	// 	.catch(err => res.status(400).json('Unable to register'));
 	// we want the response to add new user that was created
 	// res.json(database.users[database.users.length-1]);
+
+	// We need to add password to login as well so above code isn't good enough!  We'll need to BEGIN TRANSACTION
+	const hash = bcrypt.hashSync(password);
+	db.transaction(trx => {
+		// first transaction: insert into login the hash and email
+		trx.insert({
+			hash: hash,
+			email: email
+		})
+		.into('login')
+		.returning('email')
+		.then(loginEmail => {
+			return trx('users')
+				// return all users using help from knex:
+				.returning('*')
+				.insert({
+					email: loginEmail[0],
+					name: name,
+					joined: new Date()
+				})
+				// .then(console.log);
+				// If we get a response:
+				.then(user => {
+					res.json(user[0]);		
+				})
+		})
+		// if all successful commit changes otherwise rollback
+		.then(trx.commit)
+    .catch(trx.rollback);
+	})
+	.catch(err => res.status(400).json('Unable to register'));
 })
 
 // By using :id it means we can have anything e.g. 87374 and it will get the user id from the req.params property
