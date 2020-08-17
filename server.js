@@ -4,6 +4,11 @@ const cors = require('cors');
 // to connect to our postgres database
 const knex = require('knex');
 
+const register = require('./controllers/register')
+const signin = require('./controllers/signin')
+const profile = require('./controllers/profile')
+const image = require('./controllers/image')
+
 const db = knex({
   client: 'pg',
   connection: {
@@ -47,6 +52,7 @@ app.use(cors());
 // 		}
 // 	]
 // }
+
 // create a route to make sure everything is working - we test this in Postman
 app.get('/', (req, res) => {
 	res.send('this is working');
@@ -64,179 +70,26 @@ app.get('/', (req, res) => {
 
 })
 
-// Instead of res.send we can use res.json and there's a slight difference in what we receive. We receive a JSON string this way.
+
 // We want to check whatever the user enters on the front-end – it's going to come back here in the response or in the request and we want to check it with our current list of users to make sure that their passwords match.
 app.post('/signin', (req, res) => {
-	// In Postman we add in the body - json to test -> 
-	/*{
-    "email": "john@gmail.com",
-    "password": "cookies"
-	}*/
-	// if(req.body.email === database.users[0].email && req.body.password === database.users[0].password) {
-	// 	// res.json('success')
-	// 	res.json(database.users[0]);
-	// } else {
-	// 	res.status(400).json('error logging in');
-	// }
-	// res.send('signin')
-	// res.json('signin')
-
-	db.select('email', 'hash').from('login')
-		.where('email', '=', req.body.email)
-		.then(data => {
-			// console.log(data);
-			const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
-			// console.log(isValid)
-			if(isValid) {
-				return db.select('*').from('users')
-					.where('email', '=', req.body.email)
-					.then(user => {
-						// console.log(user[0])
-						res.json(user[0])
-					})
-					.catch(err => res.status(400).json('Unable to get user'))
-			} else {
-				res.status(400).json('Wrong credentials')
-			}
-		})
-		.catch(err => res.status(400).json('Wrong credentials'))
+	signin.handleSignin(req, res, db, bcrypt)
 })
 
-app.post('/register', (req, res) => {
-	/*
-		In register on POSTMAN we put in body - json:
-		{
-    	"email": "ann@gmail.com",
-    	"password": "apples", 
-    	"name": "Ann"
-		}
-	*/
-	// Using destructuring we grab (GET) what we need from req.body:
-	const { email, name, password } = req.body;
-	// bcrypt.hash(password, null, null, function(err, hash) {
-		// Store hash in your password DB.
-	// });
-
-	// We want to create a new user:
-	// database.users.push({
-	// 	id: '125',
-	// 	name: name,
-	// 	email: email,
-	// 	// password: password,
-	// 	entries: 0,
-	// 	joined: new Date()
-	// })
-
-	// We can now do above but connect to database - use Postman to test and then SELECT * FROM users; in command line psql
-	// return db('users')
-	// 	// return all users using help from knex:
-	// 	.returning('*')
-	// 	.insert({
-	// 		email: email,
-	// 		name: name,
-	// 		joined: new Date()
-	// 	})
-	// 	// .then(console.log);
-	// 	// If we get a response:
-	// 	.then(user => {
-	// 		res.json(user[0]);		
-	// 	})
-	// 	.catch(err => res.status(400).json('Unable to register'));
-	// we want the response to add new user that was created
-	// res.json(database.users[database.users.length-1]);
-
-	// We need to add password to login as well so above code isn't good enough!  We'll need to BEGIN TRANSACTION
-	const hash = bcrypt.hashSync(password);
-	db.transaction(trx => {
-		// first transaction: insert into login the hash and email
-		trx.insert({
-			hash: hash,
-			email: email
-		})
-		.into('login')
-		.returning('email')
-		.then(loginEmail => {
-			return trx('users')
-				// return all users using help from knex:
-				.returning('*')
-				.insert({
-					email: loginEmail[0],
-					name: name,
-					joined: new Date()
-				})
-				// .then(console.log);
-				// If we get a response:
-				.then(user => {
-					res.json(user[0]);		
-				})
-		})
-		// if all successful commit changes otherwise rollback
-		.then(trx.commit)
-    .catch(trx.rollback);
-	})
-	.catch(err => res.status(400).json('Unable to register'));
+// receive the db and bcrypt - this is called dependency injection as register.js will need knex and bcrypt
+app.post('/register', (req, res) => { 
+	register.handleRegister(req, res, db, bcrypt)
 })
 
 // By using :id it means we can have anything e.g. 87374 and it will get the user id from the req.params property
 app.get('/profile/:id', (req, res) => {
-	// First we want to grab the parameter id
-	const { id } = req.params;
-	// let found = false;
-	// // We have to loop through ids:
-	// database.users.forEach(user => {
-	// 	if(user.id === id) {
-	// 		found = true;
-	// 		return res.json(user);
-	// 	}
-	// })
-
-	// Now our database is connected we can do:
-	db.select('*').from('users')
-		// .where({id: id}) - we can destructure to look like:
-		.where({id})
-		.then(user => {
-			// console.log(user[0]);
-			// If array of user is not 0 (empty)
-			if(user.length) {
-				res.json(user[0])
-			} else {
-				res.status(400).json('Not found')
-			}
-		})
-		.catch(err => res.status(400).json('Error getting user'))
-	
-	// if(!found) { 
-	// 	res.status(400).json('no such user');
-	// }
+	profile.handleProfile(req, res, db)
 })
 
 // copying function as above but adding entries plus 1 if user found
 // TO test in POSTMAN - in body type under PUT: { "id": "123" }
 app.put('/image', (req, res) => {
-	// First we want to grab the body id
-	const { id } = req.body;
-	// let found = false;
-	// // We have to loop through ids:
-	// database.users.forEach(user => {
-	// 	if(user.id === id) {
-	// 		found = true;
-	// 		user.entries++;
-	// 		return res.json(user.entries);
-	// 	}
-	// })
-	// if(!found) { 
-	// 	res.status(400).json('no such user');
-	// }
-
-	// Implementing for database:
-	db('users').where('id', '=', id)
-		.increment('entries', 1)
-		.returning('entries')
-		.then(entries => {
-			// console.log(entries[0]);
-			res.json(entries[0])
-		})
-		.catch(err => res.status(400).json('Unable to get entries'))
+	image.handleImage(req, res, db)
 })
 
 
