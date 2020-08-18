@@ -15,15 +15,23 @@ const handleSignin = (req, res, db, bcrypt) => {
 	// res.send('signin')
 	// res.json('signin')
 
+	const { email, password } = req.body;
+	// SECURITY - VALIDATION
+	// We want to check that no fields are left empty, if they are throw an error:
+	if(!email || !password) {
+		return res.status(400).json('Incorrect form submission')
+	}
+
+
 	db.select('email', 'hash').from('login')
-		.where('email', '=', req.body.email)
+		.where('email', '=', email)
 		.then(data => {
 			// console.log(data);
-			const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+			const isValid = bcrypt.compareSync(password, data[0].hash);
 			// console.log(isValid)
 			if(isValid) {
 				return db.select('*').from('users')
-					.where('email', '=', req.body.email)
+					.where('email', '=', email)
 					.then(user => {
 						// console.log(user[0])
 						res.json(user[0])

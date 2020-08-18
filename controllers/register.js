@@ -41,6 +41,13 @@ const handleRegister = (req, res, db, bcrypt) => {
 	// we want the response to add new user that was created
 	// res.json(database.users[database.users.length-1]);
 
+
+	// SECURITY - VALIDATION
+	// We want to check that no fields are left empty, if they are throw an error:
+	if(!email || !name || !password) {
+		return res.status(400).json('Incorrect form submission')
+	}
+
 	// We need to add password to login as well so above code isn't good enough!  We'll need to BEGIN TRANSACTION
 	const hash = bcrypt.hashSync(password);
 	db.transaction(trx => {
