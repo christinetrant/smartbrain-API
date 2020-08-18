@@ -1,3 +1,5 @@
+const Clarifai = require('clarifai');
+
 // copying function as above but adding entries plus 1 if user found
 // TO test in POSTMAN - in body type under PUT: { "id": "123" }
 const handleImage = (req, res, db) => {
@@ -27,6 +29,21 @@ const handleImage = (req, res, db) => {
 		.catch(err => res.status(400).json('Unable to get entries'))
 }
 
+// for the clarifai app we move it to the back end so that the API key cannot be viewed from the front end - security issue!
+const app = new Clarifai.App({
+ apiKey: '72544c4221bd4b4fa43737e8d84bb367'
+});
+
+const handleApiCall = (req, res) => {
+	app.models
+    .predict(Clarifai.FACE_DETECT_MODEL, req.body.input)
+    .then(data => {
+    	res.json(data)
+    })
+    .catch(err => res.status(400).json('unable to work with API'))
+}
+
 module.exports = {
-	handleImage: handleImage
+	handleImage: handleImage,
+	handleApiCall: handleApiCall
 }

@@ -8,6 +8,7 @@ const register = require('./controllers/register')
 const signin = require('./controllers/signin')
 const profile = require('./controllers/profile')
 const image = require('./controllers/image')
+const imageUrl = require('./controllers/image')
 
 const db = knex({
   client: 'pg',
@@ -92,6 +93,10 @@ app.put('/image', (req, res) => {
 	image.handleImage(req, res, db)
 })
 
+// Clarifai api call
+app.post('/imageUrl', (req, res) => {
+	image.handleApiCall(req, res)
+})
 
 // BCRYPT FOR HASHING PASSWORDS
 // Load hash from your password DB.
