@@ -12,17 +12,18 @@ const imageUrl = require('./controllers/image')
 
 const db = knex({
   client: 'pg',
-//   connection: {
+  connection: {
 //     host : '127.0.0.1',
 //     user : 'postgres',
 //     password : 'test',
 //     database : 'smartbrain'
-//   }
-  // heroku database info:
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
+// heroku database info:
+	connectionString: process.env.DATABASE_URL,
+	ssl: {
+	rejectUnauthorized: false
+	}
   }
+  
 });
 // to access something from the users table we need a promise (.then) - we get an empty array so we know it is connected
 // db.select('*').from('users').then(data => {
