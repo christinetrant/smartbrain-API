@@ -31,7 +31,7 @@ const handleImage = (req, res, db) => {
 
 // for the clarifai app we move it to the back end so that the API key cannot be viewed from the front end - security issue!
 const app = new Clarifai.App({
- apiKey: '72544c4221bd4b4fa43737e8d84bb367'
+ apiKey: process.env.API_CLARIFAI
 });
 
 const handleApiCall = (req, res) => {
