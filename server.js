@@ -109,8 +109,9 @@ app.post('/imageUrl', (req, res) => {
 
 
 // we can send app.listen a second parameter, which is a function within this function, it will run right after the 'listen' happens on port 3000.
-app.listen(3000, () => {
-	console.log('app is running on port 3000');
+// When deploying to heroku we can't use localhost anymore so we use environment variables to point to the port
+app.listen(process.env.PORT, () => {
+	console.log(`app is running on port ${process.env.PORT}`);
 })
 
 /*
